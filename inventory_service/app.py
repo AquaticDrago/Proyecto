@@ -1,41 +1,30 @@
 from flask import Flask, jsonify, request
+import os
 
 app = Flask(__name__)
 
-# Base de datos simulada
+# Simulación de base de datos en memoria
 productos = [
-    {"id": 1, "nombre": "Laptop", "stock": 15},
-    {"id": 2, "nombre": "Teclado", "stock": 50},
+    {"id": 1, "nombre": "Producto A", "stock": 50},
+    {"id": 2, "nombre": "Producto B", "stock": 20},
+    {"id": 3, "nombre": "Producto C", "stock": 100}
 ]
 
 @app.route("/productos", methods=["GET"])
 def obtener_productos():
     return jsonify(productos)
 
-@app.route("/productos/<int:producto_id>", methods=["GET"])
-def obtener_producto(producto_id):
-    producto = next((p for p in productos if p["id"] == producto_id), None)
-    return jsonify(producto) if producto else ("Producto no encontrado", 404)
-
 @app.route("/productos", methods=["POST"])
 def agregar_producto():
-    nuevo_producto = request.json
+    data = request.json
+    nuevo_producto = {
+        "id": len(productos) + 1,
+        "nombre": data["nombre"],
+        "stock": data["stock"]
+    }
     productos.append(nuevo_producto)
     return jsonify(nuevo_producto), 201
 
-@app.route("/productos/<int:producto_id>", methods=["PUT"])
-def actualizar_producto(producto_id):
-    producto = next((p for p in productos if p["id"] == producto_id), None)
-    if not producto:
-        return "Producto no encontrado", 404
-    producto.update(request.json)
-    return jsonify(producto)
-
-@app.route("/productos/<int:producto_id>", methods=["DELETE"])
-def eliminar_producto(producto_id):
-    global productos
-    productos = [p for p in productos if p["id"] != producto_id]
-    return "Producto eliminado", 204
-
 if __name__ == "__main__":
-    app.run(port=5001)
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
